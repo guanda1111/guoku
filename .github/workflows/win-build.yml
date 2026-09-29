@@ -1,0 +1,35 @@
+name: Build Flutter Windows
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: stable
+
+      - name: Set Pub国内镜像
+        run: |
+          echo "PUB_HOSTED_URL=https://pub.flutter-io.cn" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Build Windows release
+        run: flutter build windows --release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: build/windows/x64/release/
